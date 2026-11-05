@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#120b1c" />
+<title>攻略刘颖蕊 · 恋爱模拟器</title>
+<style>
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;margin:0;padding:0;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    background:#120b1c;color:#f3e9fb;overflow:hidden;-webkit-font-smoothing:antialiased;
+  }
+  #app{
+    position:relative;width:100%;height:100vh;height:100dvh;overflow:hidden;
+    overscroll-behavior:contain;
+    background:
+      radial-gradient(1000px 600px at 15% -10%, rgba(255,110,170,.20), transparent 60%),
+      radial-gradient(900px 700px at 110% 20%, rgba(120,120,255,.18), transparent 60%),
+      linear-gradient(180deg,#1b1028 0%,#120b1c 100%);
+  }
+  .screen{position:absolute;inset:0;display:none;flex-direction:column;}
+  .screen.active{display:flex;}
+
+  /* ---------- 开始界面 ---------- */
+  #start-screen{align-items:center;justify-content:center;padding:22px;overflow-y:auto;}
+  .start-card{
+    width:100%;max-width:400px;padding:26px 22px 24px;border-radius:22px;
+    background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
+    box-shadow:0 20px 60px rgba(0,0,0,.45);
+    backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+    animation:cardIn .5s ease both;
+  }
+  @keyframes cardIn{from{opacity:0;transform:translateY(16px) scale(.98);}to{opacity:1;transform:none;}}
+  .title-badge{
+    display:inline-block;font-size:11px;letter-spacing:3px;color:#ff9dc4;
+    border:1px solid rgba(255,157,196,.45);border-radius:99px;padding:3px 10px;margin-bottom:12px;
+  }
+  .start-card h1{margin:0 0 8px;font-size:26px;letter-spacing:2px;}
+  .subtitle{margin:0 0 22px;font-size:13px;line-height:1.7;color:#b8a6c9;}
+  .field-label{display:block;font-size:12px;color:#c9b6da;margin:0 0 8px;letter-spacing:1px;}
+  #name-input{
+    width:100%;padding:13px 14px;border-radius:12px;font-size:15px;font-family:inherit;
+    background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.16);color:#fff;outline:none;
+    margin-bottom:18px;transition:border-color .2s;
+  }
+  #name-input:focus{border-color:#ff7fb0;}
+  #name-input::placeholder{color:rgba(255,255,255,.32);}
+  .gender-group{display:flex;gap:10px;margin-bottom:24px;}
+  .gender-btn{
+    flex:1;padding:11px 0;border-radius:12px;font-size:14px;font-family:inherit;cursor:pointer;
+    background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.16);color:#e6d8f2;
+    transition:all .2s;
+  }
+  .gender-btn.active{
+    background:linear-gradient(135deg,#ff7fb0,#ff5a95);border-color:transparent;
+    color:#2a0d1b;font-weight:700;box-shadow:0 6px 18px rgba(255,90,149,.35);
+  }
+  .primary-btn{
+    width:100%;padding:15px;border:none;border-radius:14px;font-size:16px;font-weight:700;
+    letter-spacing:2px;font-family:inherit;cursor:pointer;color:#2a0d1b;
+    background:linear-gradient(135deg,#ffa3c6,#ff6fa8);
+    box-shadow:0 10px 26px rgba(255,110,168,.32);
+    transition:transform .15s,box-shadow .2s;
+  }
+  .primary-btn:active{transform:scale(.98);box-shadow:0 6px 16px rgba(255,110,168,.3);}
+  .ghost-btn{
+    width:100%;margin-top:12px;padding:13px;border-radius:14px;font-size:14px;font-family:inherit;cursor:pointer;
+    background:transparent;border:1px solid rgba(255,255,255,.22);color:#dccbea;
+  }
+  .hint{margin:16px 0 0;font-size:11.5px;color:#8f7ba3;text-align:center;line-height:1.7;}
+
+  /* ---------- 游戏界面 ---------- */
+  .topbar{
+    flex:0 0 auto;padding:10px 12px 9px;
+    background:rgba(18,10,28,.72);
+    border-bottom:1px solid rgba(255,255,255,.08);
+    backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  }
+  .stats{display:flex;gap:10px;}
+  .stat{flex:1;min-width:0;}
+  .stat-head{display:flex;justify-content:space-between;align-items:baseline;font-size:11px;color:#c6b3d8;margin-bottom:5px;}
+  .stat-head b{font-size:12px;color:#fff;}
+  .bar{height:5px;border-radius:99px;background:rgba(255,255,255,.10);overflow:hidden;}
+  .bar i{display:block;height:100%;width:0;border-radius:99px;transition:width .45s cubic-bezier(.4,0,.2,1);}
+  #bar-affection{background:linear-gradient(90deg,#ff9dc4,#ff4d8d);}
+  #bar-tsundere{background:linear-gradient(90deg,#a8c8ff,#6b8bff);}
+  #bar-trust{background:linear-gradient(90deg,#8ff0d0,#38c79a);}
+  .tools{display:flex;gap:8px;justify-content:flex-end;margin-top:9px;}
+  .tools button{
+    padding:5px 13px;border-radius:99px;font-size:11.5px;font-family:inherit;cursor:pointer;
+    background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);color:#d9c7e8;
+    transition:all .2s;
+  }
+  .tools button:active{background:rgba(255,127,176,.3);border-color:rgba(255,127,176,.6);}
+
+  .stage{flex:1 1 auto;min-height:0;overflow-y:auto;padding:18px 16px 10px;-webkit-overflow-scrolling:touch;}
+  .scene-label{
+    display:inline-block;font-size:11px;letter-spacing:3px;color:#e0b6ff;
+    padding:3px 10px;margin-bottom:14px;border-left:2px solid #ff7fb0;
+    background:rgba(255,127,176,.08);border-radius:0 8px 8px 0;
+  }
+  .dialog p{margin:0 0 13px;line-height:1.9;font-size:15px;word-break:break-word;}
+  .narration{color:#e7dcf2;}
+  .tsundere-line{
+    position:relative;color:#ffe0ee;background:rgba(255,127,176,.10);
+    border-left:3px solid #ff7fb0;border-radius:0 14px 14px 0;
+    padding:11px 14px 11px 15px;font-size:14.5px;
+  }
+  .tsundere-line::before{
+    content:"傲娇暴露";display:block;font-size:10px;letter-spacing:2px;
+    color:#ff9dc4;margin-bottom:6px;
+  }
+  .player-line{color:#b9e2ff;text-align:right;font-size:14.5px;}
+  .effect-tip{
+    display:block;width:fit-content;margin:0 auto 14px;text-align:center;
+    font-size:12.5px;color:#ffe9a8;letter-spacing:1px;
+    background:rgba(255,233,168,.09);border-radius:99px;padding:7px 14px;
+  }
+
+  .choices{
+    flex:0 0 auto;padding:12px 14px calc(16px + env(safe-area-inset-bottom));
+    display:flex;flex-direction:column;gap:9px;
+    background:linear-gradient(to top,rgba(12,6,20,.96) 45%,rgba(12,6,20,0));
+  }
+  .choices:empty{padding:0;background:none;}
+  .choice-btn{
+    width:100%;text-align:left;padding:13px 16px;border-radius:14px;
+    font-size:14px;line-height:1.55;font-family:inherit;cursor:pointer;
+    background:rgba(255,255,255,.075);border:1px solid rgba(255,255,255,.155);color:#f4ebff;
+    transition:transform .15s,background .2s,border-color .2s;
+    animation:choiceIn .3s ease both;
+  }
+  @keyframes choiceIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+  .choice-btn:active{transform:scale(.985);background:rgba(255,127,176,.22);border-color:rgba(255,127,176,.6);}
+  .choice-btn:disabled{opacity:.4;}
+
+  /* ---------- 结局界面 ---------- */
+  #ending-screen{align-items:center;justify-content:center;padding:22px;overflow-y:auto;}
+  .ending-card{
+    width:100%;max-width:420px;padding:30px 24px;border-radius:22px;text-align:center;
+    background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);
+    box-shadow:0 20px 60px rgba(0,0,0,.5);
+    backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+    animation:cardIn .6s ease both;
+  }
+  .ending-label{font-size:11px;letter-spacing:6px;color:#ff9dc4;margin-bottom:10px;}
+  .ending-card h2{margin:0 0 16px;font-size:24px;letter-spacing:2px;}
+  #ending-text{font-size:14.5px;line-height:2;color:#e3d6ef;text-align:left;margin:0 0 20px;}
+  .ending-stats{display:flex;justify-content:center;gap:18px;margin-bottom:24px;font-size:12px;color:#c1aed4;}
+  .ending-stats b{color:#ffd9e8;font-size:15px;display:block;margin-top:4px;}
+
+  /* ---------- Toast ---------- */
+  #toast{
+    position:absolute;left:50%;bottom:12%;transform:translate(-50%,10px);
+    padding:9px 18px;border-radius:99px;font-size:13px;font-weight:600;
+    background:rgba(255,127,176,.94);color:#2a0d1b;white-space:nowrap;
+    opacity:0;pointer-events:none;transition:all .28s ease;z-index:99;
+  }
+  #toast.show{opacity:1;transform:translate(-50%,0);}
+
+  @media (max-width:360px){
+    .start-card h1{font-size:22px;}
+    .dialog p{font-size:14px;}
+    .stat-head span{font-size:10px;}
+    .tools button{padding:5px 10px;font-size:11px;}
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- 开始界面 -->
+  <section id="start-screen" class="screen active">
+    <div class="start-card">
+      <div class="title-badge">恋爱模拟</div>
+      <h1>攻略刘颖蕊</h1>
+      <p class="subtitle">嘴上说着不在乎的学姐直播主，其实每一场直播都在等你出现。</p>
+
+      <label class="field-label" for="name-input">你的名字</label>
+      <input id="name-input" type="text" maxlength="12" placeholder="请输入名字" autocomplete="off" />
+
+      <label class="field-label">你的性别</label>
+      <div class="gender-group" id="gender-group">
+        <button type="button" class="gender-btn" data-gender="男">男</button>
+        <button type="button" class="gender-btn" data-gender="女">女</button>
+        <button type="button" class="gender-btn active" data-gender="其他">其他</button>
+      </div>
+
+      <button id="start-btn" class="primary-btn">开始攻略</button>
+      <button id="continue-btn" class="ghost-btn" hidden>读取存档</button>
+
+      <p class="hint">好感度 / 傲娇值 / 信任<br />傲娇值越低，她越坦率。</p>
+    </div>
+  </section>
+
+  <!-- 游戏界面 -->
+  <section id="game-screen" class="screen">
+    <div class="topbar">
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-head"><span>好感度</span><b id="num-affection">0</b></div>
+          <div class="bar"><i id="bar-affection"></i></div>
+        </div>
+        <div class="stat">
+          <div class="stat-head"><span>傲娇值</span><b id="num-tsundere">0</b></div>
+          <div class="bar"><i id="bar-tsundere"></i></div>
+        </div>
+        <div class="stat">
+          <div class="stat-head"><span>信任</span><b id="num-trust">0</b></div>
+          <div class="bar"><i id="bar-trust"></i></div>
+        </div>
+      </div>
+      <div class="tools">
+        <button id="save-btn">存档</button>
+        <button id="load-btn">读档</button>
+        <button id="restart-btn">重开</button>
+      </div>
+    </div>
+
+    <div class="stage" id="stage">
+      <div class="scene-label" id="scene-label">序章</div>
+      <div class="dialog" id="dialog"></div>
+    </div>
+
+    <div class="choices" id="choices"></div>
+  </section>
+
+  <!-- 结局界面 -->
+  <section id="ending-screen" class="screen">
+    <div class="ending-card">
+      <div class="ending-label">E N D</div>
+      <h2 id="ending-name">结局</h2>
+      <p id="ending-text"></p>
+      <div class="ending-stats" id="ending-stats"></div>
+      <button id="ending-restart" class="primary-btn">重新开始</button>
+    </div>
+  </section>
+
+  <div id="toast"></div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ===================== 剧情数据 ===================== */
+  const DATA = {
+    "game": "攻略刘颖蕊",
+    "version": "1.0",
+    "initial_stats": { "affection": 0, "tsundere": 40, "trust": 5 },
+    "scenes": [
+      {
+        "id": "scene_01",
+        "title": "初遇·图书馆",
+        "text": "{player_name}在图书馆找书时，不小心撞上刘颖蕊。书本散落一地，她皱眉说：“走路不看路？”却先蹲下帮你捡。",
+        "tsundere_exposure": "她把一本绝版参考书塞给你，别开脸：“我只是嫌你挡路，不是特意帮你找。”",
+        "choices": ["c01_1", "c01_2", "c01_3"]
+      },
+      {
+        "id": "scene_02",
+        "title": "食堂拼桌",
+        "text": "{player_name}端着餐盘在食堂找位。刘颖蕊独占一桌，看见你后把包挪开：“别挡别人。”桌上却多出一份甜品。",
+        "tsundere_exposure": "她把你餐盘里的香菜夹走，嘴硬：“我只是不想看你浪费粮食。”",
+        "choices": ["c02_1", "c02_2", "c02_3"]
+      },
+      {
+        "id": "scene_03",
+        "title": "雨天伞",
+        "text": "放学时下雨，{player_name}没带伞。刘颖蕊撑伞经过，脚步慢下来。",
+        "tsundere_exposure": "她把伞往你这边倾，自己肩膀湿透，还说：“靠近点，淋湿了别怪我。”",
+        "choices": ["c03_1", "c03_2", "c03_3"]
+      },
+      {
+        "id": "scene_04",
+        "title": "社团解围",
+        "text": "社团活动出了失误，有人把责任推给{player_name}。刘颖蕊路过，冷冷开口。",
+        "tsundere_exposure": "她拿出记录本证明你没错，却说：“我只是讨厌有人在我面前撒谎。”",
+        "choices": ["c04_1", "c04_2", "c04_3"]
+      },
+      {
+        "id": "scene_05",
+        "title": "深夜直播",
+        "text": "{player_name}点进刘颖蕊的直播，她正在打游戏。弹幕问有没有喜欢的人，她瞥见你的ID，手一抖。",
+        "tsundere_exposure": "她嘴上说“别乱猜，没有”，却把下一局双排位留给你的ID，还假装是随机匹配。",
+        "choices": ["c05_1", "c05_2", "c05_3"]
+      },
+      {
+        "id": "scene_06",
+        "title": "生病照顾",
+        "text": "{player_name}发烧请假，手机响起。刘颖蕊语气不耐：“你死了吗？作业还要不要。”",
+        "tsundere_exposure": "十分钟后她出现在宿舍门口，拎着药和粥，嘴硬：“路过，顺便。别多想。”",
+        "choices": ["c06_1", "c06_2", "c06_3"]
+      },
+      {
+        "id": "scene_07",
+        "title": "校园祭烟花",
+        "text": "校园祭烟花大会，{player_name}约刘颖蕊。她说“幼稚”，但当晚准时出现在约定地点。",
+        "tsundere_exposure": "她买了两个棉花糖，把大的给你，说：“买一送一，不是特意挑的。”",
+        "choices": ["c07_1", "c07_2", "c07_3"]
+      },
+      {
+        "id": "scene_08",
+        "title": "误会冷战",
+        "text": "有人传{player_name}和别人暧昧。刘颖蕊一整天没理你，直播也黑脸。",
+        "tsundere_exposure": "她嘴上对弹幕说“关我什么事”，却反复切到你常玩的游戏界面。",
+        "choices": ["c08_1", "c08_2", "c08_3"]
+      },
+      {
+        "id": "scene_09",
+        "title": "天台拉走",
+        "text": "{player_name}被同学在天台表白。刘颖蕊突然出现，抓住你的手腕就走。",
+        "tsundere_exposure": "她耳根通红：“你眼光真差。那种人……不行。”却一直没松手。",
+        "choices": ["c09_1", "c09_2", "c09_3"]
+      },
+      {
+        "id": "scene_10",
+        "title": "生日直播告白",
+        "text": "刘颖蕊生日直播，弹幕起哄。{player_name}来到镜头外，拿着礼物。她看见你，声音卡住。",
+        "tsundere_exposure": "她关掉游戏音效，嘴上说“别搞这些”，却把镜头转向你，小声问：“你……是认真的吗？”",
+        "choices": ["c10_1", "c10_2", "c10_3"]
+      }
+    ],
+    "choices": [
+      { "id": "c01_1", "scene_id": "scene_01", "text": "“谢谢，我请你喝奶茶赔罪。”", "effect_id": "e01_1", "next_scene": "scene_02" },
+      { "id": "c01_2", "scene_id": "scene_01", "text": "“明明是你站路中间，傲娇什么？”", "effect_id": "e01_2", "next_scene": "scene_02" },
+      { "id": "c01_3", "scene_id": "scene_01", "text": "默默帮忙捡书，不多说。", "effect_id": "e01_3", "next_scene": "scene_02" },
+      { "id": "c02_1", "scene_id": "scene_02", "text": "“你怎么知道我不吃香菜？”", "effect_id": "e02_1", "next_scene": "scene_03" },
+      { "id": "c02_2", "scene_id": "scene_02", "text": "“谢谢，下次我请你吃甜品。”", "effect_id": "e02_2", "next_scene": "scene_03" },
+      { "id": "c02_3", "scene_id": "scene_02", "text": "“不会是想追我吧？”", "effect_id": "e02_3", "next_scene": "scene_03" },
+      { "id": "c03_1", "scene_id": "scene_03", "text": "“你肩膀湿了，换我撑吧。”", "effect_id": "e03_1", "next_scene": "scene_04" },
+      { "id": "c03_2", "scene_id": "scene_03", "text": "“顺路？你家不是反方向吗？”", "effect_id": "e03_2", "next_scene": "scene_04" },
+      { "id": "c03_3", "scene_id": "scene_03", "text": "靠近她，小声说谢谢。", "effect_id": "e03_3", "next_scene": "scene_04" },
+      { "id": "c04_1", "scene_id": "scene_04", "text": "“刘颖蕊，谢谢你相信我。”", "effect_id": "e04_1", "next_scene": "scene_05" },
+      { "id": "c04_2", "scene_id": "scene_04", "text": "“你专门来帮我？”", "effect_id": "e04_2", "next_scene": "scene_05" },
+      { "id": "c04_3", "scene_id": "scene_04", "text": "“我自己能解决。”", "effect_id": "e04_3", "next_scene": "scene_05" },
+      { "id": "c05_1", "scene_id": "scene_05", "text": "发弹幕：“主播脸红了。”", "effect_id": "e05_1", "next_scene": "scene_06" },
+      { "id": "c05_2", "scene_id": "scene_05", "text": "私信：“不想说就别说，我陪你打。”", "effect_id": "e05_2", "next_scene": "scene_06" },
+      { "id": "c05_3", "scene_id": "scene_05", "text": "送一个小礼物就退出。", "effect_id": "e05_3", "next_scene": "scene_06" },
+      { "id": "c06_1", "scene_id": "scene_06", "text": "“顺便带粥带药？你好关心我。”", "effect_id": "e06_1", "next_scene": "scene_07" },
+      { "id": "c06_2", "scene_id": "scene_06", "text": "“谢谢你，进来坐会儿吧。”", "effect_id": "e06_2", "next_scene": "scene_07" },
+      { "id": "c06_3", "scene_id": "scene_06", "text": "“你是不是喜欢我？”", "effect_id": "e06_3", "next_scene": "scene_07" },
+      { "id": "c07_1", "scene_id": "scene_07", "text": "“那我们一起吃。”", "effect_id": "e07_1", "next_scene": "scene_08" },
+      { "id": "c07_2", "scene_id": "scene_07", "text": "“买一送一？小票给我看看。”", "effect_id": "e07_2", "next_scene": "scene_08" },
+      { "id": "c07_3", "scene_id": "scene_07", "text": "在烟花下偷偷牵她衣角。", "effect_id": "e07_3", "next_scene": "scene_08" },
+      { "id": "c08_1", "scene_id": "scene_08", "text": "主动解释：“我只在意你。”", "effect_id": "e08_1", "next_scene": "scene_09" },
+      { "id": "c08_2", "scene_id": "scene_08", "text": "“你吃醋了？”", "effect_id": "e08_2", "next_scene": "scene_09" },
+      { "id": "c08_3", "scene_id": "scene_08", "text": "给她空间，等她开口。", "effect_id": "e08_3", "next_scene": "scene_09" },
+      { "id": "c09_1", "scene_id": "scene_09", "text": "“那你觉得谁行？”", "effect_id": "e09_1", "next_scene": "scene_10" },
+      { "id": "c09_2", "scene_id": "scene_09", "text": "“你在吃醋吗，刘颖蕊？”", "effect_id": "e09_2", "next_scene": "scene_10" },
+      { "id": "c09_3", "scene_id": "scene_09", "text": "“先放开我，我听听你怎么说。”", "effect_id": "e09_3", "next_scene": "scene_10" },
+      { "id": "c10_1", "scene_id": "scene_10", "text": "“刘颖蕊，我喜欢你。不是玩笑。”", "effect_id": "e10_1", "next_scene": "ending_check" },
+      { "id": "c10_2", "scene_id": "scene_10", "text": "“你如果不喜欢，我就当没来过。”", "effect_id": "e10_2", "next_scene": "ending_check" },
+      { "id": "c10_3", "scene_id": "scene_10", "text": "“先下播，我有话单独说。”", "effect_id": "e10_3", "next_scene": "ending_check" }
+    ],
+    "effects": [
+      { "id": "e01_1", "affection": 4, "tsundere": -3, "trust": 2 },
+      { "id": "e01_2", "affection": 2, "tsundere": 5, "trust": 1 },
+      { "id": "e01_3", "affection": 3, "tsundere": -1, "trust": 3 },
+      { "id": "e02_1", "affection": 5, "tsundere": -4, "trust": 2 },
+      { "id": "e02_2", "affection": 4, "tsundere": -2, "trust": 3 },
+      { "id": "e02_3", "affection": 3, "tsundere": 6, "trust": 0 },
+      { "id": "e03_1", "affection": 5, "tsundere": -5, "trust": 4 },
+      { "id": "e03_2", "affection": 3, "tsundere": 5, "trust": 1 },
+      { "id": "e03_3", "affection": 4, "tsundere": -2, "trust": 3 },
+      { "id": "e04_1", "affection": 6, "tsundere": -4, "trust": 5 },
+      { "id": "e04_2", "affection": 4, "tsundere": 6, "trust": 2 },
+      { "id": "e04_3", "affection": 2, "tsundere": 2, "trust": 4 },
+      { "id": "e05_1", "affection": 4, "tsundere": 7, "trust": 1 },
+      { "id": "e05_2", "affection": 6, "tsundere": -5, "trust": 5 },
+      { "id": "e05_3", "affection": 3, "tsundere": 1, "trust": 2 },
+      { "id": "e06_1", "affection": 6, "tsundere": -3, "trust": 5 },
+      { "id": "e06_2", "affection": 5, "tsundere": -6, "trust": 4 },
+      { "id": "e06_3", "affection": 4, "tsundere": 8, "trust": 1 },
+      { "id": "e07_1", "affection": 5, "tsundere": -2, "trust": 3 },
+      { "id": "e07_2", "affection": 3, "tsundere": 6, "trust": 1 },
+      { "id": "e07_3", "affection": 7, "tsundere": -4, "trust": 3 },
+      { "id": "e08_1", "affection": 7, "tsundere": -5, "trust": 6 },
+      { "id": "e08_2", "affection": 4, "tsundere": 7, "trust": 2 },
+      { "id": "e08_3", "affection": 2, "tsundere": 1, "trust": 3 },
+      { "id": "e09_1", "affection": 7, "tsundere": 4, "trust": 4 },
+      { "id": "e09_2", "affection": 5, "tsundere": 8, "trust": 2 },
+      { "id": "e09_3", "affection": 4, "tsundere": -3, "trust": 6 },
+      { "id": "e10_1", "affection": 10, "tsundere": -6, "trust": 8 },
+      { "id": "e10_2", "affection": 5, "tsundere": 3, "trust": 5 },
+      { "id": "e10_3", "affection": 7, "tsundere": -2, "trust": 7 }
+    ],
+    "endings": [
+      {
+        "id": "ending_lover",
+        "name": "恋人结局",
+        "priority": 1,
+        "condition": "affection >= 60 && trust >= 45 && tsundere <= 45",
+        "text": "{player_name}，直播结束后，刘颖蕊别过脸，把礼物盒塞回你手里：“别误会，我只是刚好也喜欢你。你要是敢反悔，我就再也不理你了。”她耳尖通红，却牵住了你的手。恋人结局。"
+      },
+      {
+        "id": "ending_friend",
+        "name": "朋友结局",
+        "priority": 2,
+        "condition": "affection >= 40 && trust >= 30",
+        "text": "刘颖蕊嘴上说着“只是朋友”，却记得你所有偏好。你们成了彼此最信任的朋友，只是她偶尔会在直播里看着你的ID发呆。朋友结局。"
+      },
+      {
+        "id": "ending_missed",
+        "name": "错过结局",
+        "priority": 3,
+        "condition": "true",
+        "text": "刘颖蕊依然嘴硬，依然在直播里假装不在意。可当你转身离开，她伸出的手停在半空。你们错过了。错过结局。"
+      }
+    ]
+  };
+
+  /* ===================== 常量与状态 ===================== */
+  const SAVE_KEY = 'liuyingrui_save_v1';
+  const MAX = { affection: 70, tsundere: 100, trust: 55 };
+  const TYPE_SPEED = 18;
+
+  let state = null;
+  let session = 0;
+  let skipCurrent = false;
+  let locked = false;
+  let selectedGender = '其他';
+  let toastTimer = null;
+
+  const $ = function (id) { return document.getElementById(id); };
+  const screens = {
+    start: $('start-screen'),
+    game: $('game-screen'),
+    ending: $('ending-screen')
+  };
+  const dialogEl = $('dialog');
+  const choicesEl = $('choices');
+  const stageEl = $('stage');
+
+  /* ===================== 工具函数 ===================== */
+  function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+  function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+  function fmt(n) { return (n > 0 ? '+' : '') + n; }
+  function numOr(v, d) { return (typeof v === 'number' && isFinite(v)) ? v : d; }
+
+  function showScreen(name) {
+    Object.keys(screens).forEach(function (k) {
+      screens[k].classList.toggle('active', k === name);
+    });
+  }
+
+  function toast(msg) {
+    const t = $('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.classList.remove('show'); }, 1600);
+  }
+
+  function fill(text) {
+    return String(text)
+      .replace(/\{player_name\}/g, state ? state.name : '你')
+      .replace(/\{player_gender\}/g, state ? state.gender : '其他');
+  }
+
+  /* ===================== 打字机 ===================== */
+  async function typeText(text, cls, my) {
+    skipCurrent = false;
+    const p = document.createElement('p');
+    if (cls) p.className = cls;
+    dialogEl.appendChild(p);
+    stageEl.scrollTop = stageEl.scrollHeight;
+
+    const chars = Array.from(text);
+    for (let i = 0; i < chars.length; i++) {
+      if (my !== session) return false;
+      if (skipCurrent) { p.textContent = text; skipCurrent = false; break; }
+      p.textContent += chars[i];
+      if (i % 4 === 0) stageEl.scrollTop = stageEl.scrollHeight;
+      await sleep(TYPE_SPEED);
+    }
+    p.textContent = text;
+    stageEl.scrollTop = stageEl.scrollHeight;
+    return true;
+  }
+
+  /* ===================== 数值 ===================== */
+  function setStat(key, val, max) {
+    const numEl = $('num-' + key);
+    const barEl = $('bar-' + key);
+    if (numEl) numEl.textContent = val;
+    if (barEl) barEl.style.width = clamp((val / max) * 100, 0, 100) + '%';
+  }
+
+  function updateStats() {
+    if (!state) return;
+    setStat('affection', state.affection, MAX.affection);
+    setStat('tsundere', state.tsundere, MAX.tsundere);
+    setStat('trust', state.trust, MAX.trust);
+  }
+
+  /* ===================== 存档 ===================== */
+  function saveGame(manual) {
+    if (!state) return;
+    try {
+      localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+      if (manual) toast('已存档 ✓');
+    } catch (e) {
+      if (manual) toast('存档失败');
+    }
+  }
+
+  function hasSave() {
+    try { return !!localStorage.getItem(SAVE_KEY); } catch (e) { return false; }
+  }
+
+  function clearSave() {
+    try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
+  }
+
+  function refreshContinue() {
+    $('continue-btn').hidden = !hasSave();
+  }
+
+  function loadGame() {
+    let raw = null;
+    try { raw = localStorage.getItem(SAVE_KEY); } catch (e) {}
+    if (!raw) { toast('没有找到存档'); return; }
+
+    let d = null;
+    try { d = JSON.parse(raw); } catch (e) { toast('存档已损坏'); return; }
+    if (!d || !d.currentScene) { toast('存档已损坏'); return; }
+
+    state = {
+      name: d.name || '你',
+      gender: d.gender || '其他',
+      affection: numOr(d.affection, DATA.initial_stats.affection),
+      tsundere: numOr(d.tsundere, DATA.initial_stats.tsundere),
+      trust: numOr(d.trust, DATA.initial_stats.trust),
+      currentScene: d.currentScene
+    };
+    locked = false;
+    showScreen('game');
+    updateStats();
+    playScene(state.currentScene);
+    toast('已读档 ✓');
+  }
+
+  /* ===================== 流程 ===================== */
+  function startGame(name, gender) {
+    state = {
+      name: name,
+      gender: gender,
+      affection: DATA.initial_stats.affection,
+      tsundere: DATA.initial_stats.tsundere,
+      trust: DATA.initial_stats.trust,
+      currentScene: DATA.scenes[0].id
+    };
+    locked = false;
+    showScreen('game');
+    updateStats();
+    playScene(state.currentScene);
+  }
+
+  async function playScene(sceneId) {
+    const my = ++session;
+    const scene = DATA.scenes.filter(function (s) { return s.id === sceneId; })[0];
+    if (!scene) { showEnding(); return; }
+
+    state.currentScene = sceneId;
+    locked = false;
+    choicesEl.innerHTML = '';
+    dialogEl.innerHTML = '';
+    $('scene-label').textContent = scene.title;
+    updateStats();
+    saveGame(false);
+    stageEl.scrollTop = 0;
+
+    await typeText(fill(scene.text), 'narration', my);
+    if (my !== session) return;
+
+    await sleep(240);
+    if (my !== session) return;
+
+    await typeText(fill(scene.tsundere_exposure), 'tsundere-line', my);
+    if (my !== session) return;
+
+    await sleep(180);
+    if (my !== session) return;
+
+    renderChoices(scene, my);
+  }
+
+  function renderChoices(scene, my) {
+    choicesEl.innerHTML = '';
+    scene.choices.forEach(function (cid, i) {
+      const c = DATA.choices.filter(function (x) { return x.id === cid; })[0];
+      if (!c) return;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'choice-btn';
+      btn.style.animationDelay = (i * 60) + 'ms';
+      btn.textContent = c.text;
+      btn.addEventListener('click', function () { handleChoice(c, my); });
+      choicesEl.appendChild(btn);
+    });
+  }
+
+  async function handleChoice(choice, my) {
+    if (locked) return;
+    if (my !== session) return;
+    locked = true;
+
+    choicesEl.innerHTML = '';
+
+    const eff = DATA.effects.filter(function (e) { return e.id === choice.effect_id; })[0] || {};
+    const dA = eff.affection || 0;
+    const dT = eff.tsundere || 0;
+    const dR = eff.trust || 0;
+
+    state.affection = clamp(state.affection + dA, 0, MAX.affection);
+    state.tsundere = clamp(state.tsundere + dT, 0, MAX.tsundere);
+    state.trust = clamp(state.trust + dR, 0, MAX.trust);
+    updateStats();
+
+    await typeText('▶ ' + choice.text, 'player-line', my);
+    if (my !== session) return;
+
+    const tips = [];
+    if (dA) tips.push('好感度 ' + fmt(dA));
+    if (dT) tips.push('傲娇值 ' + fmt(dT));
+    if (dR) tips.push('信任 ' + fmt(dR));
+    if (tips.length) {
+      await typeText(tips.join('　'), 'effect-tip', my);
+      if (my !== session) return;
+    }
+
+    await sleep(420);
+    if (my !== session) return;
+
+    if (choice.next_scene === 'ending_check') {
+      showEnding();
+    } else {
+      playScene(choice.next_scene);
+    }
+  }
+
+  /* ===================== 结局 ===================== */
+  function checkCond(cond, stats) {
+    try {
+      const fn = new Function('affection', 'tsundere', 'trust', 'return (' + cond + ');');
+      return !!fn(stats.affection, stats.tsundere, stats.trust);
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function showEnding() {
+    session++;
+    const stats = { affection: state.affection, tsundere: state.tsundere, trust: state.trust };
+
+    const sorted = DATA.endings.slice().sort(function (a, b) { return a.priority - b.priority; });
+    let chosen = sorted[sorted.length - 1];
+    for (let i = 0; i < sorted.length; i++) {
+      if (checkCond(sorted[i].condition, stats)) { chosen = sorted[i]; break; }
+    }
+
+    $('ending-name').textContent = chosen.name;
+    $('ending-text').textContent = fill(chosen.text);
+    $('ending-stats').innerHTML =
+      '<div>好感度<b>' + stats.affection + '</b></div>' +
+      '<div>傲娇值<b>' + stats.tsundere + '</b></div>' +
+      '<div>信任<b>' + stats.trust + '</b></div>';
+
+    showScreen('ending');
+    clearSave();
+    refreshContinue();
+  }
+
+  /* ===================== 事件绑定 ===================== */
+  document.querySelectorAll('.gender-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('.gender-btn').forEach(function (b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      selectedGender = btn.dataset.gender || '其他';
+    });
+  });
+
+  $('start-btn').addEventListener('click', function () {
+    const name = $('name-input').value.trim() || '你';
+    startGame(name, selectedGender);
+  });
+
+  $('continue-btn').addEventListener('click', function () { loadGame(); });
+
+  $('save-btn').addEventListener('click', function () { saveGame(true); });
+  $('load-btn').addEventListener('click', function () { loadGame(); });
+
+  $('restart-btn').addEventListener('click', function () {
+    if (!window.confirm('确定要重新开始吗？当前进度将会丢失。')) return;
+    session++;
+    clearSave();
+    state = null;
+    refreshContinue();
+    showScreen('start');
+  });
+
+  $('ending-restart').addEventListener('click', function () {
+    session++;
+    state = null;
+    refreshContinue();
+    showScreen('start');
+  });
+
+  stageEl.addEventListener('click', function () { skipCurrent = true; });
+
+  $('name-input').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { $('start-btn').click(); }
+  });
+
+  /* ===================== 初始化 ===================== */
+  refreshContinue();
+})();
+</script>
+</body>
+</html>
